@@ -2,6 +2,27 @@
 const path = require("path");
 const ESlintWebpackPlugin = require("eslint-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+
+// 获取处理样式的Loaders
+const getStyleLoaders = (preProcessor) => {
+    return [
+        MiniCssExtractPlugin.loader,
+        "css-loader",
+        {
+            loader: "postcss-loader",
+            options: {
+                postcssOptions: {
+                    plugins: [
+                        "postcss-preset-env", // 能解决大多数样式兼容性问题
+                    ],
+                },
+            },
+        },
+        preProcessor,
+    ].filter(Boolean);
+}
 
 module.exports = {
     // 入口
@@ -25,41 +46,25 @@ module.exports = {
             // css
             {
                 test: /\.css$/i,
-                use: [ // 执行顺序，从右到左，从下到上
-                    "style-loader", // 将js中css通过style标签添加到html文件中生效
-                    "css-loader"  // 将css资源编译成conmonjs的模块到js中
-                ],
+                // 执行顺序，从右到左，从下到上
+                use: getStyleLoaders(),
             },
             // less
             {
                 test: /\.less$/,
                 // loader:"xxx",  // 只能使用一个loader
-                use: [ // 使用多个loader
-                    "style-loader",
-                    "css-loader",
-                    "less-loader"
-                ]
+                use: getStyleLoaders("less-loader"),
             },
 
             // scss sass
             {
                 test: /\.s[ac]ss$/,
-                use: [{
-                    loader: "style-loader" // 将 JS 字符串生成为 style 节点
-                }, {
-                    loader: "css-loader" // 将 CSS 转化成 CommonJS 模块
-                }, {
-                    loader: "sass-loader" // 将 Sass 编译成 CSS
-                }]
+                use: getStyleLoaders("sass-loader"),
             },
             // stylus
             {
                 test: /\.styl$/,
-                use: [
-                    "style-loader",
-                    "css-loader",
-                    "stylus-loader" // 处理styl资源
-                ],
+                use:getStyleLoaders("stylus-loader"),
             },
             // 静态文件
             {
@@ -112,7 +117,14 @@ module.exports = {
             // 以public/index.html 为模板创建的文件
             // 新的html文件有两个特点：1.内容和源文件一致  2.自动引入打包生成的js等资源
             template: path.resolve(__dirname, "../public/index.html"),
-        })
+        }),
+        // 提取css成单独文件
+        new MiniCssExtractPlugin({
+            // 定义输出文件名和目录
+            filename: "static/css/main.css"
+        }),
+        // css压缩
+        new CssMinimizerPlugin(),
     ],
     // 开发服务器
     // devServer: {
