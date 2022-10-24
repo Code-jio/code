@@ -15,4 +15,3 @@ console.log(sum(4, 3, 2, 1));
 // console.log(res1);
 // var res2 = sum(4,3, 2, 1)
 // console.log(res2);
-
