@@ -64,7 +64,7 @@ module.exports = {
             // stylus
             {
                 test: /\.styl$/,
-                use:getStyleLoaders("stylus-loader"),
+                use: getStyleLoaders("stylus-loader"),
             },
             // 静态文件
             {
@@ -133,5 +133,9 @@ module.exports = {
     //     open: "true"  // 是否自动打开浏览器
     // },
     // 模式
-    mode: "production",//  开发模式
+    mode: "production",//  开发模式  
+    //     生产模式：source-map
+    // 优点：包含行/列映射
+    // 缺点：打包编译速度更慢
+    devtool: "source-map",
 }

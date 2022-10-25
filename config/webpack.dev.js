@@ -109,17 +109,21 @@ module.exports = {
             context: path.resolve(__dirname, "../src"),
         }),
         new HtmlWebpackPlugin({
-        // 以public/index.html 为模板创建的文件
+            // 以public/index.html 为模板创建的文件
             // 新的html文件有两个特点：1.内容和源文件一致  2.自动引入打包生成的js等资源
-            template:path.resolve(__dirname,"../public/index.html"),
+            template: path.resolve(__dirname, "../public/index.html"),
         })
     ],
     // 开发服务器
     devServer: {
         host: "localhost", // 启动服务器域名
-        port:"3000", // 启动服务器端口号
-        open:"true"  // 是否自动打开浏览器
+        port: "3000", // 启动服务器端口号
+        open: "true"  // 是否自动打开浏览器
     },
     // 模式
     mode: "development",//  开发模式
+    // 开发模式：cheap-module-source-map
+    // 优点：打包编译速度快，只包含行映射
+    // 缺点：没有列映射
+    devtool: "cheap-module-source-map",
 }
