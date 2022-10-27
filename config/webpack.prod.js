@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 // cpu核数
 const threads = os.cpus().length
@@ -127,6 +128,8 @@ module.exports = {
                                 loader: "babel-loader",
                                 options: {
                                     cacheDirectory: true, // 开启babel编译缓存
+                                    cacheCompression: false, // 缓存文件不要压缩
+                                    plugins: ["@babel/plugin-transform-runtime"]  // 减少代码体积
                                 },
                             },
                         ],
@@ -161,7 +164,7 @@ module.exports = {
         }),
         // css压缩
         // new CssMinimizerPlugin(),
-        
+
     ],
     optimization: {
         minimize: true,
@@ -171,7 +174,35 @@ module.exports = {
             // 当生产模式会默认开启TerserPlugin，但是我们需要进行其他配置，就要重新写了
             new TerserPlugin({
                 parallel: threads, // 开启多线程
-            })
+            }),
+            // 压缩图片
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.imageminGenerate,
+                    options: {
+                        plugins: [
+                            ["gifsicle", { interlaced: true }],
+                            ["jpegtran", { progressive: true }],
+                            ["optipng", { optimizationLevel: 5 }],
+                            [
+                                "svgo",
+                                {
+                                    plugins: [
+                                        "preset-default",
+                                        "prefixIds",
+                                        {
+                                            name: "sortAttrs",
+                                            params: {
+                                                xmlnsOrder: "alphabetical",
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        ],
+                    },
+                },
+            }),
         ]
     },
     // 开发服务器
@@ -182,6 +213,11 @@ module.exports = {
     // },
     // 模式
     mode: "production",//  开发模式  
+    // 打包文件的大小限制
+    performance: {
+        maxEntrypointSize: 10000000,
+        maxAssetSize: 30000000
+    },
     //     生产模式：source-map
     // 优点：包含行/列映射
     // 缺点：打包编译速度更慢

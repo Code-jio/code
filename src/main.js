@@ -1,5 +1,6 @@
 import count from "./js/count";
 import sum from "./js/sum";
+import { add } from "./js/math"
 
 import "./css/index.css";
 import "./less/common.less";
@@ -8,7 +9,8 @@ import "./scss/test2.scss";
 import "./stylus/index.styl";
 import "./css/iconfont.css";
 
-console.log(count(2,1));
+console.log(add(2, 1));
+console.log(count(2, 1));
 console.log(sum(4, 3, 2, 1));
 
 // var res1 = count(3, 2, 1)

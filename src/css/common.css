@@ -1,0 +1,7 @@
+.box2 {
+  height: 100px;
+  width: 100px;
+  background-color: pink;
+  background-image: url("../images/1.webp");
+  background-size: cover;
+}
