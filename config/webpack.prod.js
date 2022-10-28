@@ -8,6 +8,8 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+const PreloadWebpackPlugin = require("@vue/preload-webpack-plugin")
+const WorkboxPlugin = require("workbox-webpack-plugin");
 
 // cpu核数
 const threads = os.cpus().length
@@ -43,10 +45,12 @@ module.exports = {
         // __dirname 当前文件的文件夹绝对路径
         path: path.resolve(__dirname, "../dist"), // 生产模式需要输出
         // filename: 入口文件打包输出文件名
-        filename: "static/js/main.js",
+        filename: "static/js/[name].[contenthash:8].js",
         // 清空上次打包的内容
         // 原理：再打包前，将path整个目录内容清空，在进行打包 
-        // clean: true // 开发模式没有输出，不需要清空输出结果
+        chunkFilename: "static/js/[name].[contenthash:8].chunk.js",
+        assetModuleFilename: "static/media/[hash:10][ext]",
+        clean: true // 开发模式没有输出，不需要清空输出结果
     },
     // 加载器
     module: {
@@ -88,23 +92,23 @@ module.exports = {
                                 maxSize: 10 * 1024 // 10kb
                             }
                         },
-                        generator: {
-                            // 将图片文件输出到 static/imgs目录中
-                            // 将图片文件命名为 [hash:8][ext][query]
-                            // [hash:8]:hash值取8位
-                            // [ext]：使用之前的文件扩展名
-                            // [query]：添加之前的query参数(可写可不写)
-                            filename: "static/imgs/[hash:10][ext][query]"
-                        }
+                        // generator: {
+                        //     // 将图片文件输出到 static/imgs目录中
+                        //     // 将图片文件命名为 [hash:8][ext][query]
+                        //     // [hash:8]:hash值取8位
+                        //     // [ext]：使用之前的文件扩展名
+                        //     // [query]：添加之前的query参数(可写可不写)
+                        //     filename: "static/imgs/[hash:10][ext][query]"
+                        // }
                     },
                     // 字体图标
                     {
                         test: /\.(ttf|woff2?|map4|map3|avi)$/,// 处理字体图标等等资源
                         type: "asset/resource",
-                        generator: {
-                            // 输出名称
-                            filename: "static/media/[hash:10][ext][query]"
-                        }
+                        // generator: {
+                        //     // 输出名称
+                        //     filename: "static/media/[hash:10][ext][query]"
+                        // }
                     },
                     // bable
                     {
@@ -160,11 +164,22 @@ module.exports = {
         // 提取css成单独文件
         new MiniCssExtractPlugin({
             // 定义输出文件名和目录
-            filename: "static/css/main.css"
+            filename: "static/css/[name].[contenthash:8].css",
+            chunkFilename: "static/css/[name].[contenthash:8].chunk.css",
         }),
         // css压缩
         // new CssMinimizerPlugin(),
-
+        new PreloadWebpackPlugin({
+            rel: "preload", // preload兼容性更好
+            as: "script",
+            // rel :"prefetch"  // 兼容性更差
+        }),
+        new WorkboxPlugin.GenerateSW({
+            // 这些选项帮助快速启用 ServiceWorkers
+            // 不允许遗留任何"旧的" ServiceWorkers
+            clientsClaim: true,
+            skipWaiting: true,
+        }),
     ],
     optimization: {
         minimize: true,
@@ -203,7 +218,16 @@ module.exports = {
                     },
                 },
             }),
-        ]
+        ],
+        // 代码分割配置
+        splitChunks: {
+            chunks: "all", // 对所有的模块进行 分割
+        }, // 其他内容用默认配置即可
+        runtimeChunk: {
+            name: (entrypoint) => {
+                `runtime~${entrypoint.name}.js`
+            }
+        }
     },
     // 开发服务器
     // devServer: {
@@ -213,10 +237,10 @@ module.exports = {
     // },
     // 模式
     mode: "production",//  开发模式  
-    // 打包文件的大小限制
+    // 打包文件的大小限制  避免报警告
     performance: {
-        maxEntrypointSize: 10000000,
-        maxAssetSize: 30000000
+        maxEntrypointSize: 100000000,
+        maxAssetSize: 300000000
     },
     //     生产模式：source-map
     // 优点：包含行/列映射

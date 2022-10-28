@@ -6,7 +6,7 @@ module.exports = {
         browser: true,  // 启用浏览器中全局变量
     },
     parserOptions: {
-        ecmaVersion: 6, // es6版本
+        ecmaVersion: es2015, // es6版本
         sourceType: "module",
     },
     rules: {
